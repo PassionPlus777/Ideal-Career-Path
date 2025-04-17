@@ -165,7 +165,7 @@ const Pathway: React.FC = () => {
       .attr("cy", (d) => d.y)
       .attr("r", (d) => d.size)
       .attr("fill", "#E3F2FD")
-      .attr("opacity", (d) => 0.3 + Math.random() * 0.3); // Random opacity
+      .attr("opacity", () => 0.3 + Math.random() * 0.3); // Random opacity
 
     // Create a container for the tree
     const container = svg.append("g");
@@ -187,26 +187,6 @@ const Pathway: React.FC = () => {
       d.y = -d.y;
     });
 
-    // Create links with curved paths and enhanced style
-    const links = container
-      .selectAll(".link")
-      .data(treeData.links())
-      .enter()
-      .append("path")
-      .attr("class", "link")
-      .attr(
-        "d",
-        d3
-          .linkVertical<any, any>()
-          .x((d) => d.x)
-          .y((d) => d.y)
-      )
-      .attr("fill", "none")
-      .attr("stroke", "url(#gradient-1)")
-      .attr("stroke-width", 3)
-      .attr("opacity", 0.6)
-      .style("filter", "url(#drop-shadow)");
-
     // Create nodes with enhanced style
     const nodes = container
       .selectAll(".node")
@@ -216,7 +196,7 @@ const Pathway: React.FC = () => {
       .attr("class", "node")
       .attr("transform", (d) => `translate(${d.x},${d.y})`)
       .style("cursor", "pointer")
-      .on("click", function (event, d) {
+      .on("click", function () {
         // Reset all nodes to default size
         nodes.selectAll("circle").transition().duration(200).attr("r", 70);
 
