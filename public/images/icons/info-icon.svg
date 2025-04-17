@@ -1,0 +1,18 @@
+<svg width="16px" height="16px" viewBox="0 0 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <!-- Generator: Sketch 40.3 (33839) - http://www.bohemiancoding.com/sketch -->
+  <title>Icon/Info</title>
+  <desc>Created with Sketch.</desc>
+  <defs>
+    <circle id="path-1" cx="8" cy="8" r="8"/>
+    <mask id="mask-2" maskContentUnits="userSpaceOnUse" maskUnits="objectBoundingBox" x="0" y="0" width="16" height="16" fill="white">
+        <use xlink:href="#path-1"/>
+    </mask>
+  </defs>
+  <g id="Symbols" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+    <g id="Icon/Info">
+      <use id="Oval-2" stroke="#64696E" mask="url(#mask-2)" stroke-width="2" xlink:href="#path-1"/>
+      <path d="M8,6 C8.55228475,6 9,5.55613518 9,5 L9,5 C9,4.44771525 8.55613518,4 8,4 L8,4 C7.44771525,4 7,4.44386482 7,5 L7,5 C7,5.55228475 7.44386482,6 8,6 L8,6 Z" id="Path" fill="#64696E"/>
+      <polygon id="i" fill="#64696E" points="8.75 12 8.75 7 7.25 7 7.25 12"/>
+    </g>
+  </g>
+</svg>
