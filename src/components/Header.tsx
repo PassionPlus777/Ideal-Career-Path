@@ -38,6 +38,12 @@ const Header: React.FC<HeaderProps> = () => {
           title: "Decision",
           subtitle: "Career Path Selection",
         };
+      case "/pathway":
+        return {
+          logo: "/images/icons/square-only.svg",
+          title: "Pathway",
+          subtitle: "Career Path Selection",
+        };
       default:
         return {
           logo: "/images/icons/logo-symbols.svg",

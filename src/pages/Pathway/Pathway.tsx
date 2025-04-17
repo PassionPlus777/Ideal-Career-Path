@@ -54,8 +54,8 @@ const Pathway: React.FC = () => {
     function getRandomName(level: number): string {
       const names = {
         1: ["Technical Path", "Management Path", "Research Path"],
-        2: ["Development", "Architecture", "Leadership", "Analytics"],
-        3: ["Frontend", "Backend", "Mobile", "Cloud", "ML/AI"],
+        2: ["Development", "Architecture", "Leadership"],
+        3: ["Backend", "Mobile", "Cloud"],
         4: ["React", "Node.js", "AWS", "Python", "Java"],
         5: ["Senior", "Lead", "Expert", "Architect", "Manager"],
       };
@@ -72,15 +72,16 @@ const Pathway: React.FC = () => {
     };
 
     // Set up the SVG dimensions
-    const width = window.innerWidth * 3;
-    const height = window.innerHeight * 3;
+    const width = window.innerWidth;
+    const height = window.innerHeight;
 
-    // Create the SVG
+    // Create the SVG with improved centering
     const svg = d3
       .select(svgRef.current)
       .attr("width", "100%")
       .attr("height", "100%")
-      .attr("viewBox", `${-width / 2} ${-height / 2} ${width} ${height}`);
+      .attr("viewBox", `0 0 ${width} ${height}`)
+      .attr("preserveAspectRatio", "xMidYMid meet");
 
     // Define gradients and filters
     const defs = svg.append("defs");
@@ -186,6 +187,26 @@ const Pathway: React.FC = () => {
     treeData.descendants().forEach((d) => {
       d.y = -d.y;
     });
+
+    // Create links with curved paths and enhanced style
+    container
+      .selectAll(".link")
+      .data(treeData.links())
+      .enter()
+      .append("path")
+      .attr("class", "link")
+      .attr(
+        "d",
+        d3
+          .linkVertical<any, any>()
+          .x((d) => d.x)
+          .y((d) => d.y)
+      )
+      .attr("fill", "none")
+      .attr("stroke", "url(#gradient-1)")
+      .attr("stroke-width", 3)
+      .attr("opacity", 0.6)
+      .style("filter", "url(#drop-shadow)");
 
     // Create nodes with enhanced style
     const nodes = container
@@ -306,38 +327,54 @@ const Pathway: React.FC = () => {
 
     const treeWidth = maxX - minX;
     const treeHeight = maxY - minY;
-    const centerX = (maxX + minX) / 2;
-    const centerY = (maxY + minY) / 2;
 
     // Add zoom behavior
     const zoom = d3
       .zoom<SVGSVGElement, unknown>()
-      .scaleExtent([0.1, 4])
+      .scaleExtent([0.3, 4])
       .on("zoom", (event) => {
         container.attr("transform", event.transform);
       });
 
-    // Initial transform to center the tree
-    const scale =
+    // Improved initial transform calculation
+    const scale = Math.max(
       Math.min(
-        width / (treeWidth + 400), // Add padding
+        width / (treeWidth + 400), // Increased padding for better centering
         height / (treeHeight + 400)
-      ) * 0.8; // Scale down slightly to ensure it fits
+      ) * 0.8, // Slightly reduced scale for better fit
+      0.3 // Minimum scale value to match zoom.scaleExtent
+    );
 
     const initialTransform = d3.zoomIdentity
-      .translate(width / 2 - centerX * scale, height / 2 - centerY * scale)
+      .translate(
+        (width - treeWidth * scale) / 2 - minX * scale,
+        (height - treeHeight * scale) / 2 - minY * scale
+      )
       .scale(scale);
 
     svg.call(zoom).call(zoom.transform, initialTransform);
 
-    // Handle window resize
+    // Improved resize handler
     const handleResize = () => {
-      const newWidth = window.innerWidth * 3;
-      const newHeight = window.innerHeight * 3;
-      svg.attr(
-        "viewBox",
-        `${-newWidth / 2} ${-newHeight / 2} ${newWidth} ${newHeight}`
-      );
+      const newWidth = window.innerWidth;
+      const newHeight = window.innerHeight;
+
+      // Update SVG dimensions
+      svg.attr("viewBox", `0 0 ${newWidth} ${newHeight}`);
+
+      // Recalculate and apply transform
+      const newScale =
+        Math.min(newWidth / (treeWidth + 400), newHeight / (treeHeight + 400)) *
+        0.8;
+
+      const newTransform = d3.zoomIdentity
+        .translate(
+          (newWidth - treeWidth * newScale) / 2 - minX * newScale,
+          (newHeight - treeHeight * newScale) / 2 - minY * newScale
+        )
+        .scale(newScale);
+
+      svg.call(zoom.transform, newTransform);
     };
 
     window.addEventListener("resize", handleResize);
