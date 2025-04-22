@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { SubscriptionHook } from "../types/subscription";
+import { SubscriptionHook } from "../core/types/subscription";
 
 export const useSubscription = (): SubscriptionHook => {
   const subscribe = useCallback(async (email: string, captchaToken: string) => {

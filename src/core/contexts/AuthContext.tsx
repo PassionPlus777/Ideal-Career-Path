@@ -6,7 +6,7 @@ import {
   onAuthStateChanged,
   User,
 } from "firebase/auth";
-import LoadingSpinner from "../components/LoadingSpinner";
+import LoadingSpinner from "../../shared/components/common/LoadingSpinner";
 
 interface AuthContextType {
   isAuthenticated: boolean;

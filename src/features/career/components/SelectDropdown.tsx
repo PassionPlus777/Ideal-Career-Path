@@ -16,7 +16,7 @@ const SelectDropdown: React.FC<SelectDropdownProps> = ({
   onToggle,
 }) => {
   return (
-    <div className="mt-6 relative">
+    <div className="mt-6 relative w-full">
       <button
         onClick={onToggle}
         className="w-full bg-[#e3f2fd] text-[#2196f3] p-4 rounded-xl flex items-center justify-between transition-all duration-200 hover:bg-[#bbdefb] focus:outline-none focus:ring-2 focus:ring-[#2196f3] focus:ring-opacity-50"

@@ -4,7 +4,7 @@ import {
   signInWithEmailAndPassword,
   signInWithPopup,
 } from "firebase/auth";
-import { auth, googleProvider } from "../../../config/firebase";
+import { auth, googleProvider } from "../../../core/config/firebase";
 import { UseAuthReturn } from "../types";
 
 export const useAuth = (): UseAuthReturn => {

@@ -1,7 +1,7 @@
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuthState } from "react-firebase-hooks/auth";
-import { auth } from "../../config/firebase";
-import Loading from "../../components/common/Loading";
+import { auth } from "../../core/config/firebase";
+import Loading from "../../shared/components/common/Loading";
 
 interface PublicRouteProps {
   children: React.ReactNode;

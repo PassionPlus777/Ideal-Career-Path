@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { useAnalytics } from "../../hooks/useAnalytics";
+import { useAnalytics } from "../../core/hooks/useAnalytics";
 
 const Welcome: React.FC = () => {
   const navigate = useNavigate();
