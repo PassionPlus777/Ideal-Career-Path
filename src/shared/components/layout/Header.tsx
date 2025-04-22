@@ -1,5 +1,4 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useAuth } from "../../../core/contexts/AuthContext";
 import { useState } from "react";
 
 interface HeaderProps {
@@ -7,20 +6,9 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = () => {
-  const { isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
-
-  const handleLogout = async () => {
-    try {
-      await logout();
-      navigate("/");
-      setIsMenuOpen(false);
-    } catch (error) {
-      console.error("Logout failed:", error);
-    }
-  };
 
   const handleBack = () => {
     if (location.pathname !== "/") {

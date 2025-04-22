@@ -384,7 +384,7 @@ const Pathway: React.FC = () => {
       .attr("class", "node")
       .attr("transform", (d) => `translate(${d.x},${d.y})`)
       .style("cursor", "pointer")
-      .on("click", function (event, d) {
+      .on("click", function (_, d) {
         // Prevent node selection during initial animation
         if (!isInitialAnimationComplete) return;
 
@@ -487,7 +487,7 @@ const Pathway: React.FC = () => {
 
     // Add background rectangles sized to fit text
     labelTexts.each(function () {
-      const text = d3.select(this);
+      // const text = d3.select(this);
       const textWidth = (this as SVGTextElement).getComputedTextLength();
       const padding = 24;
 
@@ -509,7 +509,7 @@ const Pathway: React.FC = () => {
 
     // Update hover behavior to only work on non-selected nodes
     nodes
-      .on("mouseover", function (event, d) {
+      .on("mouseover", function (_, d) {
         if (this !== selectedNode) {
           d3.select(this)
             .transition()
@@ -517,7 +517,7 @@ const Pathway: React.FC = () => {
             .attr("transform", `translate(${d.x},${d.y}) scale(1.1)`);
         }
       })
-      .on("mouseout", function (event, d) {
+      .on("mouseout", function (_, d) {
         if (this !== selectedNode) {
           d3.select(this)
             .transition()
