@@ -44,7 +44,7 @@ const QuestionContent: React.FC<QuestionContentProps> = ({
               value={option.id}
               checked={selectedOption === option.id}
               onChange={(e) => onOptionChange(Number(e.target.value))}
-              className="w-5 h-5 !border-[#7744EF] !accent-[#7744EF] focus:ring-[#7744EF] cursor-pointer"
+              className="w-5 h-5 cursor-pointer"
             />
             <span className="font-sans">{option.name}</span>
           </label>

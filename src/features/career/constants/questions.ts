@@ -13,13 +13,13 @@ export interface Question {
 export const careerQuestions: Question[] = [
   {
     id: 1,
-    question: "What's your relationship status?",
+    question: "What is your career choice of interest?",
     imageUrl: "/images/icons/choose.png",
     options: [
-      { id: 1, name: "Single" },
-      { id: 2, name: "Taken" },
-      { id: 3, name: "It's complicated" },
-      { id: 4, name: "Open" },
+      { id: 1, name: "Software Development" },
+      { id: 2, name: "Data Science" },
+      { id: 3, name: "Cybersecurity" },
+      { id: 4, name: "AI/Machine Learning" },
       { id: 5, name: "I'd rather not say" },
     ],
   },

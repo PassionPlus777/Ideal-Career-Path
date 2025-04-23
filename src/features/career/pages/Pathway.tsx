@@ -38,17 +38,18 @@ const NodeModal: React.FC<{
       onClick={onClose}
     >
       <div
-        className="relative bg-white rounded-lg shadow-xl max-w-lg w-full m-4 overflow-hidden"
+        className="relative bg-white rounded-lg shadow-xl max-w-lg w-full m-4 max-h-[100vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <ContentLayout
-          imageUrl="/images/illustrations/how-it-works.svg"
+          imageUrl="/splash/learn.png"
           currentStep={3}
           totalSteps={6}
           leftButtonText="Back"
           rightButtonText="Next"
           onLeftButtonClick={onClose}
           onRightButtonClick={onClose}
+          modal={true}
         >
           <div className="px-6 pt-6 pb-4">
             <h2 className="text-[28px] font-bold mb-6 leading-tight">
@@ -58,14 +59,8 @@ const NodeModal: React.FC<{
               {howItWorks.map((item, index) => (
                 <div key={index} className="flex items-start space-x-4">
                   <div className="flex-shrink-0 mt-1">
-                    <div className="w-5 h-5 rounded-full bg-[#4CD964] flex items-center justify-center">
-                      <svg
-                        className="w-3 h-3 text-white"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                      >
-                        <path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" />
-                      </svg>
+                    <div className="w-5 h-5 text-[#4CD964] flex items-center justify-center text-xl font-bold">
+                      ✓
                     </div>
                   </div>
                   <p className="text-[17px] leading-[1.3] text-gray-900">
@@ -101,6 +96,20 @@ const NodeModal: React.FC<{
     </div>
   );
 };
+
+function isDescendant(
+  node: d3.HierarchyNode<NodeData>,
+  ancestor: d3.HierarchyNode<NodeData>
+): boolean {
+  let current = node;
+  while (current.parent) {
+    if (current.parent === ancestor) {
+      return true;
+    }
+    current = current.parent;
+  }
+  return false;
+}
 
 const Pathway: React.FC = () => {
   const { trackScreenView } = useAnalytics();
@@ -300,8 +309,8 @@ const Pathway: React.FC = () => {
         const startY = d.source.y + ny * 50;
 
         // End point: move in from target node center
-        const endX = d.target.x - nx * 80;
-        const endY = d.target.y - ny * 80;
+        const endX = d.target.x - nx * 100;
+        const endY = d.target.y - ny * 100;
 
         return `M${startX},${startY} L${endX},${endY}`;
       })
@@ -388,51 +397,100 @@ const Pathway: React.FC = () => {
         // Prevent node selection during initial animation
         if (!isInitialAnimationComplete) return;
 
-        // If there was a previously selected node, reset it
+        // If there was a previously selected node, reset its labels
         if (selectedNode && selectedNode !== this) {
           d3.select(selectedNode)
             .transition()
             .duration(300)
             .attr("transform", (d: any) => `translate(${d.x},${d.y}) scale(1)`);
+
+          // Hide all labels
+          d3.selectAll(".label-group")
+            .transition()
+            .duration(300)
+            .style("opacity", 0);
         }
 
         // Update selected node reference
         selectedNode = selectedNode === this ? null : this;
         selectedNodeRef.current = selectedNode;
 
-        // Scale up this node to 2x size
-        d3.select(this)
-          .transition()
-          .duration(300)
-          .attr("transform", `translate(${d.x},${d.y}) scale(2)`)
-          .on("end", () => {
-            // Show modal after scaling animation
-            if (selectedNode) {
-              setSelectedNodeData(d.data);
-            }
-          });
-
-        // Center on the selected node
         if (selectedNode) {
-          const svgElement = svg.node();
-          if (svgElement) {
-            const svgWidth = svgElement.clientWidth;
-            const svgHeight = svgElement.clientHeight;
+          // Scale up selected node
+          d3.select(this)
+            .transition()
+            .duration(300)
+            .attr("transform", `translate(${d.x},${d.y}) scale(3)`);
 
-            const x = svgWidth / 2 - d.x * scale;
-            const y = svgHeight / 2 - d.y * scale;
+          // Calculate zoom transform to focus on selected node
+          const svg = d3.select(svgRef.current);
+          const width = svg.node()?.clientWidth || 0;
+          const height = svg.node()?.clientHeight || 0;
 
+          // Calculate the scale needed to fit the selected node and its children
+          const scale =
+            Math.min(
+              width / (treeWidth + padding * 2),
+              height / (treeHeight + padding * 2)
+            ) * 0.8;
+
+          // Calculate the transform to center on the selected node
+          const transform = d3.zoomIdentity
+            .translate(width / 2, height / 2)
+            .scale(scale)
+            .translate(-d.x, -d.y);
+
+          // Apply the transform with animation
+          svg
+            .transition()
+            .duration(750)
+            .call(zoom.transform as any, transform)
+            .on("end", () => {
+              // Show modal after focusing animation is complete
+              setSelectedNodeData(d.data);
+            });
+
+          // Hide all labels first
+          d3.selectAll(".label-group")
+            .transition()
+            .duration(300)
+            .style("opacity", 0);
+
+          // Then show labels for selected node and its direct children
+          d3.selectAll(".label-group")
+            .filter((node: any) => {
+              const nodeData = node as d3.HierarchyNode<NodeData>;
+              return (
+                nodeData === d || // Selected node
+                (nodeData.depth === d.depth + 1 && nodeData.parent === d) // Direct children only
+              );
+            })
+            .transition()
+            .duration(300)
+            .style("opacity", 1);
+        } else {
+          // If deselecting, reset to initial view
+          const svg = d3.select(svgRef.current);
+          if (zoomRef.current && initialTransformRef.current) {
             svg
               .transition()
               .duration(750)
               .call(
-                zoom.transform,
-                d3.zoomIdentity.translate(x, y).scale(scale)
+                zoomRef.current.transform as any,
+                initialTransformRef.current
               );
           }
-        } else {
-          // If deselecting, return to the initial view
-          svg.transition().duration(750).call(zoom.transform, initialTransform);
+
+          // Show labels for root and its direct children
+          d3.selectAll(".label-group")
+            .filter((node: any) => {
+              const nodeData = node as d3.HierarchyNode<NodeData>;
+              return nodeData.depth <= 1; // Root and its direct children
+            })
+            .transition()
+            .duration(300)
+            .style("opacity", 1);
+
           setSelectedNodeData(null);
         }
       });
@@ -441,53 +499,60 @@ const Pathway: React.FC = () => {
     nodes
       .append("rect")
       .attr("class", "outer-stroke")
-      .attr("width", 150)
-      .attr("height", 150)
-      .attr("x", -75)
-      .attr("y", -75)
+      .attr("width", 160)
+      .attr("height", 160)
+      .attr("x", -80)
+      .attr("y", -80)
       .attr("rx", 10)
       .attr("ry", 10)
       .attr("fill", "none")
-      .attr("stroke", "#0F6FFF")
-      .attr("stroke-width", 2)
-      .style("stroke-linejoin", "round");
+      .attr("stroke", "#170062")
+      .attr("stroke-width", 5);
 
     // Second stroke (inner)
     nodes
       .append("rect")
       .attr("class", "inner-rect")
-      .attr("width", 140)
-      .attr("height", 140)
-      .attr("x", -70)
-      .attr("y", -70)
-      .attr("rx", 10)
-      .attr("ry", 10)
+      .attr("width", 120)
+      .attr("height", 120)
+      .attr("x", -60)
+      .attr("y", -60)
+      .attr("rx", 8)
+      .attr("ry", 8)
       .attr("fill", "#2937F0")
-      .attr("stroke", "#0F6FFF")
-      .attr("stroke-width", 2)
-      .style("stroke-linejoin", "round");
+      .attr("stroke", "#84BFFF")
+      .attr("stroke-width", 2);
 
-    // Add permanent labels above nodes
+    // Add labels with conditional visibility
     const labels = nodes
       .append("g")
       .attr("class", "label-group")
-      .attr("transform", "translate(0, -100)");
+      .attr("transform", "translate(0, -120)")
+      .style("opacity", (d) => {
+        // Show labels for root node and its direct children initially
+        return d.depth <= 1 ? 1 : 0;
+      });
 
-    // Add label text first (to measure it)
+    // Add tooltip container
+    const tooltip = svg
+      .append("g")
+      .attr("class", "tooltip")
+      .style("opacity", 0);
+
+    // Add label text
     const labelTexts = labels
       .append("text")
       .attr("text-anchor", "middle")
       .attr("dy", "0.35em")
-      .style("fill", "#0F6FFF")
-      .style("font-size", "24px")
+      .style("fill", "#170062ff")
+      .style("font-size", "50px")
       .style("font-weight", "600")
       .style("font-family", "'Segoe UI', Arial, sans-serif")
       .style("pointer-events", "none")
       .text((d) => d.data.name);
 
-    // Add background rectangles sized to fit text
+    // Add background rectangles for labels
     labelTexts.each(function () {
-      // const text = d3.select(this);
       const textWidth = (this as SVGTextElement).getComputedTextLength();
       const padding = 24;
 
@@ -495,11 +560,11 @@ const Pathway: React.FC = () => {
         (this as SVGTextElement).parentNode as SVGGElement
       );
       parentGroup
-        .insert("rect", "text") // Insert before text
+        .insert("rect", "text")
         .attr("x", -textWidth / 2 - padding)
-        .attr("y", -18)
+        .attr("y", -30)
         .attr("width", textWidth + padding * 2)
-        .attr("height", 36)
+        .attr("height", 60)
         .attr("rx", 6)
         .attr("ry", 6)
         .attr("fill", "black")
@@ -507,22 +572,78 @@ const Pathway: React.FC = () => {
         .style("stroke", "none");
     });
 
-    // Update hover behavior to only work on non-selected nodes
+    // Add tooltip text
+    const tooltipText = tooltip
+      .append("text")
+      .attr("text-anchor", "middle")
+      .attr("dy", "0.35em")
+      .style("fill", "#170062ff")
+      .style("font-size", "50px")
+      .style("font-weight", "600")
+      .style("font-family", "'Segoe UI', Arial, sans-serif")
+      .style("pointer-events", "none");
+
+    // Add tooltip background
+    const tooltipBg = tooltip
+      .append("rect")
+      .attr("fill", "black")
+      .style("opacity", 0.2)
+      .style("stroke", "none");
+
+    // Update hover behavior
     nodes
       .on("mouseover", function (_, d) {
         if (this !== selectedNode) {
+          // Scale up node
           d3.select(this)
             .transition()
             .duration(200)
             .attr("transform", `translate(${d.x},${d.y}) scale(1.1)`);
+
+          // Show tooltip for nodes that don't have visible labels
+          const selectedNodeData = selectedNode
+            ? (selectedNode as any).__data__
+            : null;
+
+          // Show tooltip if:
+          // 1. No node is selected and node is not root or direct child, or
+          // 2. This node is not the selected node and not a descendant of the selected node
+          const shouldShowTooltip = !selectedNodeData
+            ? d.depth > 1 // Show tooltip for non-root/child nodes when no selection
+            : d !== selectedNodeData && !isDescendant(d, selectedNodeData); // Show tooltip for non-selected/descendant nodes
+
+          if (shouldShowTooltip) {
+            const textWidth =
+              tooltipText.text(d.data.name).node()?.getComputedTextLength() ||
+              0;
+            const padding = 24;
+
+            tooltipBg
+              .attr("x", -textWidth / 2 - padding)
+              .attr("y", -30)
+              .attr("width", textWidth + padding * 2)
+              .attr("height", 60)
+              .attr("rx", 6)
+              .attr("ry", 6);
+
+            tooltip
+              .attr("transform", `translate(${d.x},${d.y - 120})`)
+              .transition()
+              .duration(200)
+              .style("opacity", 1);
+          }
         }
       })
       .on("mouseout", function (_, d) {
         if (this !== selectedNode) {
+          // Scale down node
           d3.select(this)
             .transition()
             .duration(200)
             .attr("transform", `translate(${d.x},${d.y}) scale(1)`);
+
+          // Hide tooltip
+          tooltip.transition().duration(200).style("opacity", 0);
         }
       });
 
@@ -577,27 +698,13 @@ const Pathway: React.FC = () => {
         node={selectedNodeData}
         onClose={() => {
           setSelectedNodeData(null);
-          // Reset node selection and view
+          // Only reset the modal state, keep the node scaled up
           if (selectedNodeRef.current) {
-            d3.select(selectedNodeRef.current)
-              .transition()
-              .duration(300)
-              .attr(
-                "transform",
-                (d: any) => `translate(${d.x},${d.y}) scale(1)`
-              );
-            selectedNodeRef.current = null;
-
-            const svg = d3.select(svgRef.current);
-            if (zoomRef.current && initialTransformRef.current) {
-              svg
-                .transition()
-                .duration(750)
-                .call(
-                  zoomRef.current.transform as any,
-                  initialTransformRef.current
-                );
-            }
+            // Keep the node scaled up
+            d3.select(selectedNodeRef.current).attr(
+              "transform",
+              (d: any) => `translate(${d.x},${d.y}) scale(2)`
+            );
           }
         }}
       />
