@@ -1,29 +1,24 @@
 import React, { ReactNode } from "react";
-// import ProgressIndicator from "../../../features/career/components/ProgressIndicator";
 
-interface ContentLayoutProps {
+interface ModalContentProps {
   imageUrl: string;
   children: ReactNode;
-  currentStep?: number;
-  totalSteps?: number;
   leftButtonText?: string;
   rightButtonText?: string;
   onLeftButtonClick?: () => void;
   onRightButtonClick?: () => void;
 }
 
-const ContentLayout: React.FC<ContentLayoutProps> = ({
+const ModalContent: React.FC<ModalContentProps> = ({
   imageUrl,
   children,
-  // currentStep = 1,
-  // totalSteps = 4,
   leftButtonText = "Not Sure",
   rightButtonText = "Next",
   onLeftButtonClick,
   onRightButtonClick,
 }) => {
   return (
-    <div className={`flex flex-col min-h-screen bg-white`}>
+    <div className="flex flex-col bg-white">
       {/* Main content */}
       <div className="flex-1 flex flex-col items-center px-4 py-8 max-w-md mx-auto w-full">
         {/* Image */}
@@ -48,12 +43,6 @@ const ContentLayout: React.FC<ContentLayoutProps> = ({
             >
               {leftButtonText}
             </button>
-            {/* <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2">
-              <ProgressIndicator
-                currentStep={currentStep}
-                totalSteps={totalSteps}
-              />
-            </div> */}
             <button
               onClick={onRightButtonClick}
               className="text-gray-800 hover:text-blue-500 transition-colors font-medium cursor-pointer z-10"
@@ -61,11 +50,10 @@ const ContentLayout: React.FC<ContentLayoutProps> = ({
               {rightButtonText}
             </button>
           </div>
-          {/* <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-32 h-1 bg-black rounded-full"></div> */}
         </div>
       </div>
     </div>
   );
 };
 
-export default ContentLayout;
+export default ModalContent;

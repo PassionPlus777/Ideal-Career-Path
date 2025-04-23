@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import * as d3 from "d3";
 import { useAnalytics } from "../../../core/hooks/useAnalytics";
-import ContentLayout from "../../../shared/components/layout/ContentLayout";
+import ModalContent from "../../../shared/components/layout/ModalContent";
 
 interface NodeData {
   id: string;
@@ -34,24 +34,21 @@ const NodeModal: React.FC<{
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/30"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4 overflow-y-auto pt-40"
       onClick={onClose}
     >
       <div
-        className="relative bg-white rounded-lg shadow-xl max-w-lg w-full m-4 max-h-[100vh] overflow-y-auto"
+        className="relative bg-white rounded-lg shadow-xl max-w-lg w-full my-8"
         onClick={(e) => e.stopPropagation()}
       >
-        <ContentLayout
+        <ModalContent
           imageUrl="/splash/learn.png"
-          currentStep={3}
-          totalSteps={6}
           leftButtonText="Back"
           rightButtonText="Next"
           onLeftButtonClick={onClose}
           onRightButtonClick={onClose}
-          modal={true}
         >
-          <div className="px-6 pt-6 pb-4">
+          <div className="px-6 pb-16">
             <h2 className="text-[28px] font-bold mb-6 leading-tight">
               How it works
             </h2>
@@ -91,7 +88,7 @@ const NodeModal: React.FC<{
               </button>
             </div>
           </div>
-        </ContentLayout>
+        </ModalContent>
       </div>
     </div>
   );
@@ -553,6 +550,7 @@ const Pathway: React.FC = () => {
 
     // Add background rectangles for labels
     labelTexts.each(function () {
+      const text = d3.select(this);
       const textWidth = (this as SVGTextElement).getComputedTextLength();
       const padding = 24;
 
