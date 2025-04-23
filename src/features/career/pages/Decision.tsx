@@ -17,6 +17,7 @@ const Decision: React.FC = () => {
 
   const handleNext = () => {
     navigate("/pathway");
+    setCurrentQuestionIndex(0);
     // if (currentQuestionIndex < totalQuestions - 1) {
     //   setCurrentQuestionIndex((prev) => prev + 1);
     // } else {

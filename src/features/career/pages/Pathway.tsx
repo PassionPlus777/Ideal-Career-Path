@@ -550,7 +550,6 @@ const Pathway: React.FC = () => {
 
     // Add background rectangles for labels
     labelTexts.each(function () {
-      const text = d3.select(this);
       const textWidth = (this as SVGTextElement).getComputedTextLength();
       const padding = 24;
 
