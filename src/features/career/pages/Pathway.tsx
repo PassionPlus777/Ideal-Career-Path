@@ -38,7 +38,7 @@ const NodeModal: React.FC<{
       onClick={onClose}
     >
       <div
-        className="relative bg-white rounded-lg shadow-xl max-w-lg w-full my-8"
+        className="relative bg-white rounded-lg shadow-xl max-w-lg w-full my-8 z-50"
         onClick={(e) => e.stopPropagation()}
       >
         <ModalContent
@@ -47,6 +47,7 @@ const NodeModal: React.FC<{
           rightButtonText="Next"
           onLeftButtonClick={onClose}
           onRightButtonClick={onClose}
+          onClose={onClose}
         >
           <div className="px-6 pb-16">
             <h2 className="text-[28px] font-bold mb-6 leading-tight">
@@ -108,6 +109,144 @@ function isDescendant(
   return false;
 }
 
+// In the future, this data will come from the backend
+const healthCareerData: NodeData = {
+  id: "root",
+  name: "Health",
+  group: 0,
+  children: [
+    {
+      id: "physician",
+      name: "Physician",
+      group: 1,
+      children: [
+        {
+          id: "mental",
+          name: "Mental",
+          group: 2,
+          children: [
+            {
+              id: "psychiatrist",
+              name: "Psychiatrist",
+              group: 3,
+            },
+            {
+              id: "psychologist",
+              name: "Psychologist",
+              group: 3,
+            },
+            {
+              id: "therapist",
+              name: "Therapist",
+              group: 3,
+            },
+          ],
+        },
+        {
+          id: "physical",
+          name: "Physical",
+          group: 2,
+          children: [
+            {
+              id: "dentist",
+              name: "Dentist",
+              group: 3,
+              children: [
+                {
+                  id: "orthodontist",
+                  name: "Orthodontist",
+                  group: 4,
+                },
+              ],
+            },
+            {
+              id: "paramedic",
+              name: "Paramedic",
+              group: 3,
+            },
+            {
+              id: "general-practitioner",
+              name: "General Practitioner",
+              group: 3,
+            },
+          ],
+        },
+      ],
+    },
+    {
+      id: "nurse",
+      name: "Nurse",
+      group: 1,
+      children: [
+        {
+          id: "natal",
+          name: "Natal",
+          group: 2,
+          children: [
+            {
+              id: "pediatrician",
+              name: "Pediatrician",
+              group: 3,
+            },
+            {
+              id: "obgyn",
+              name: "OB-GYN",
+              group: 3,
+            },
+            {
+              id: "doula",
+              name: "Doula",
+              group: 3,
+            },
+          ],
+        },
+        {
+          id: "geriatric",
+          name: "Geriatric",
+          group: 2,
+        },
+        {
+          id: "er-nurse",
+          name: "ER Nurse",
+          group: 2,
+        },
+        {
+          id: "cardiac-nurse",
+          name: "Cardiac Nurse",
+          group: 2,
+        },
+      ],
+    },
+    {
+      id: "research",
+      name: "Research & Development",
+      group: 1,
+    },
+    {
+      id: "technical",
+      name: "Technical",
+      group: 1,
+      children: [
+        {
+          id: "pharmacist",
+          name: "Pharmacist",
+          group: 2,
+        },
+        {
+          id: "medical-record",
+          name: "Medical Record Technician",
+          group: 2,
+        },
+        {
+          id: "lab-tech",
+          name: "Lab Technician",
+          group: 2,
+        },
+      ],
+    },
+  ],
+};
+
 const Pathway: React.FC = () => {
   const { trackScreenView } = useAnalytics();
   const svgRef = useRef<SVGSVGElement>(null);
@@ -127,54 +266,6 @@ const Pathway: React.FC = () => {
 
     // Clear any existing content
     d3.select(svgRef.current).selectAll("*").remove();
-
-    // Create hierarchical data structure with random children
-    function createRandomChildren(
-      level: number,
-      maxLevel: number = 5
-    ): NodeData[] | undefined {
-      if (level >= maxLevel) return undefined;
-
-      // Always generate 2-3 children for non-leaf nodes
-      const numChildren =
-        level < maxLevel - 1 ? Math.floor(Math.random() * 2) + 2 : 0;
-
-      if (numChildren === 0) return undefined;
-
-      const children: NodeData[] = [];
-
-      for (let i = 0; i < numChildren; i++) {
-        const child: NodeData = {
-          id: `${level}-${i}`,
-          name: getRandomName(level),
-          group: level,
-          children: createRandomChildren(level + 1, maxLevel),
-        };
-        children.push(child);
-      }
-
-      return children;
-    }
-
-    function getRandomName(level: number): string {
-      const names = {
-        1: ["Technical Path", "Management Path", "Research Path"],
-        2: ["Development", "Architecture", "Leadership"],
-        3: ["Backend", "Mobile", "Cloud"],
-        4: ["React", "Node.js", "AWS", "Python", "Java"],
-        5: ["Senior", "Lead", "Expert", "Architect", "Manager"],
-      };
-
-      const levelNames = names[level as keyof typeof names] || ["Role"];
-      return levelNames[Math.floor(Math.random() * levelNames.length)];
-    }
-
-    const hierarchicalData: NodeData = {
-      id: "root",
-      name: "Career Start",
-      group: 0,
-      children: createRandomChildren(1),
-    };
 
     // Set up the SVG dimensions
     const svgElement = svgRef.current;
@@ -271,10 +362,14 @@ const Pathway: React.FC = () => {
     const treeLayout = d3
       .tree<NodeData>()
       .size([width * 0.8, height * 0.8])
-      .nodeSize([200, 400]); // Even larger spacing for bigger nodes
+      .nodeSize([250, 400]) // Increase horizontal spacing between nodes
+      .separation((a, b) => {
+        // Increase separation between nodes based on their depth and relationship
+        return a.parent === b.parent ? 1.5 : 2;
+      });
 
-    // Create the hierarchy
-    const root = d3.hierarchy(hierarchicalData);
+    // Create the hierarchy from our data
+    const root = d3.hierarchy(healthCareerData);
 
     // Generate the tree layout
     const treeData = treeLayout(root);
@@ -301,14 +396,16 @@ const Pathway: React.FC = () => {
         const nx = dx / length;
         const ny = dy / length;
 
-        // Start point: move out from source node center
-        const startX = d.source.x + nx * 50;
-        const startY = d.source.y + ny * 50;
+        // Adjust start and end points based on node sizes
+        // Move start point out from source node center by 80 units (half of node width)
+        const startX = d.source.x + nx * 80;
+        const startY = d.source.y + ny * 80;
 
-        // End point: move in from target node center
-        const endX = d.target.x - nx * 100;
-        const endY = d.target.y - ny * 100;
+        // Move end point in from target node center by 80 units
+        const endX = d.target.x - nx * 80;
+        const endY = d.target.y - ny * 80;
 
+        // Use straight line with adjusted connection points
         return `M${startX},${startY} L${endX},${endY}`;
       })
       .attr("fill", "none")
@@ -335,9 +432,9 @@ const Pathway: React.FC = () => {
 
     // Calculate the initial scale to fit the tree
     const scale = Math.max(
-      0.3,
+      0.5,
       Math.min(
-        0.9,
+        1.2,
         Math.min(
           width / (treeWidth + padding * 2),
           height / (treeHeight + padding * 2)
@@ -363,7 +460,7 @@ const Pathway: React.FC = () => {
           (width - treeWidth * scale) / 2 - minX * scale,
           (height - treeHeight * scale) / 2 - minY * scale
         )
-        .scale(0.1)
+        .scale(0.5)
     );
 
     // Animate to the proper view after a short delay
@@ -417,19 +514,28 @@ const Pathway: React.FC = () => {
           d3.select(this)
             .transition()
             .duration(300)
-            .attr("transform", `translate(${d.x},${d.y}) scale(3)`);
+            .attr("transform", `translate(${d.x},${d.y}) scale(2)`);
 
           // Calculate zoom transform to focus on selected node
           const svg = d3.select(svgRef.current);
           const width = svg.node()?.clientWidth || 0;
           const height = svg.node()?.clientHeight || 0;
 
+          // Check if it's a mobile screen
+          const isMobile = width <= 768;
+
           // Calculate the scale needed to fit the selected node and its children
           const scale =
-            Math.min(
-              width / (treeWidth + padding * 2),
-              height / (treeHeight + padding * 2)
-            ) * 0.8;
+            Math.max(
+              isMobile ? 0.6 : 0.4,
+              Math.min(
+                isMobile ? 1.0 : 0.8,
+                Math.min(
+                  width / (treeWidth + padding * 2),
+                  height / (treeHeight + padding * 2)
+                )
+              )
+            ) * (isMobile ? 1.0 : 0.8);
 
           // Calculate the transform to center on the selected node
           const transform = d3.zoomIdentity
@@ -438,14 +544,15 @@ const Pathway: React.FC = () => {
             .translate(-d.x, -d.y);
 
           // Apply the transform with animation
-          svg
-            .transition()
-            .duration(750)
-            .call(zoom.transform as any, transform)
-            .on("end", () => {
-              // Show modal after focusing animation is complete
-              setSelectedNodeData(d.data);
-            });
+          if (zoomRef.current) {
+            svg
+              .transition()
+              .duration(750)
+              .call(zoomRef.current.transform as any, transform)
+              .on("end", () => {
+                setSelectedNodeData(d.data);
+              });
+          }
 
           // Hide all labels first
           d3.selectAll(".label-group")
@@ -649,13 +756,18 @@ const Pathway: React.FC = () => {
       const newWidth = window.innerWidth;
       const newHeight = window.innerHeight;
 
-      // Update SVG dimensions
       svg.attr("viewBox", `0 0 ${newWidth} ${newHeight}`);
 
-      // Recalculate and apply transform
-      const newScale =
-        Math.min(newWidth / (treeWidth + 400), newHeight / (treeHeight + 400)) *
-        0.8;
+      const newScale = Math.max(
+        0.5,
+        Math.min(
+          1.2,
+          Math.min(
+            newWidth / (treeWidth + padding * 2),
+            newHeight / (treeHeight + padding * 2)
+          )
+        )
+      );
 
       const newTransform = d3.zoomIdentity
         .translate(
@@ -664,7 +776,9 @@ const Pathway: React.FC = () => {
         )
         .scale(newScale);
 
-      svg.call(zoom.transform, newTransform);
+      if (zoomRef.current) {
+        svg.call(zoomRef.current.transform, newTransform);
+      }
     };
 
     window.addEventListener("resize", handleResize);

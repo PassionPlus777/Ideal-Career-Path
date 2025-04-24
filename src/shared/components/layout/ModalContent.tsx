@@ -7,6 +7,7 @@ interface ModalContentProps {
   rightButtonText?: string;
   onLeftButtonClick?: () => void;
   onRightButtonClick?: () => void;
+  onClose?: () => void;
 }
 
 const ModalContent: React.FC<ModalContentProps> = ({
@@ -16,11 +17,37 @@ const ModalContent: React.FC<ModalContentProps> = ({
   rightButtonText = "Next",
   onLeftButtonClick,
   onRightButtonClick,
+  onClose,
 }) => {
   return (
-    <div className="flex flex-col bg-white">
+    <div className="flex flex-col bg-white relative">
+      {/* Close button */}
+      {onClose && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onClose();
+          }}
+          className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 cursor-pointer"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-6 w-6"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+        </button>
+      )}
       {/* Main content */}
-      <div className="flex-1 flex flex-col items-center px-4 py-8 max-w-md mx-auto w-full">
+      <div className="flex-1 flex flex-col items-center max-w-md mx-auto w-full">
         {/* Image */}
         <img
           src={imageUrl}

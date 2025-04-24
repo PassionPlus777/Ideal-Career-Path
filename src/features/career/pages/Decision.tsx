@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import ContentLayout from "../../../shared/components/layout/ContentLayout";
 import QuestionContent from "../components/QuestionContent";
 import RandomSelectionModal from "../components/RandomSelectionModal";
+import ComingSoonModal from "../components/ComingSoonModal";
 import { careerQuestions } from "../constants/questions";
 
 const Decision: React.FC = () => {
@@ -11,19 +12,17 @@ const Decision: React.FC = () => {
   const [answers, setAnswers] = useState<Record<number, number>>({});
   const [showRandomModal, setShowRandomModal] = useState(false);
   const [randomDecision, setRandomDecision] = useState("");
+  const [showComingSoonModal, setShowComingSoonModal] = useState(false);
 
   const currentQuestion = careerQuestions[currentQuestionIndex];
   const totalQuestions = careerQuestions.length;
 
   const handleNext = () => {
-    navigate("/pathway");
-    setCurrentQuestionIndex(0);
-    // if (currentQuestionIndex < totalQuestions - 1) {
-    //   setCurrentQuestionIndex((prev) => prev + 1);
-    // } else {
-    //   // Handle completion - navigate to results page
-    //   navigate("/pathway");
-    // }
+    if (currentQuestionIndex === totalQuestions - 1) {
+      setShowComingSoonModal(true);
+    } else {
+      setCurrentQuestionIndex((prev) => prev + 1);
+    }
   };
 
   const handleNotSure = () => {
@@ -44,6 +43,21 @@ const Decision: React.FC = () => {
     handleNext();
   };
 
+  const handleSubscribe = () => {
+    // TODO: Implement subscription logic
+    console.log("User subscribed to feature notification");
+    setShowComingSoonModal(false);
+  };
+
+  const handleCloseComingSoon = () => {
+    setShowComingSoonModal(false);
+  };
+
+  const handleMaybeLater = () => {
+    setShowComingSoonModal(false);
+    navigate("/pathway");
+  };
+
   const handleOptionChange = (value: number) => {
     setAnswers((prev) => ({
       ...prev,
@@ -60,7 +74,7 @@ const Decision: React.FC = () => {
         onLeftButtonClick={handleNotSure}
         onRightButtonClick={handleNext}
         rightButtonText={
-          currentQuestionIndex === totalQuestions - 1 ? "Finish" : "Next"
+          currentQuestionIndex === totalQuestions - 1 ? "Decide" : "Next"
         }
       >
         <QuestionContent
@@ -75,6 +89,13 @@ const Decision: React.FC = () => {
           decision={randomDecision}
           onCancel={handleCancel}
           onView={handleView}
+        />
+      )}
+      {showComingSoonModal && (
+        <ComingSoonModal
+          onSubscribe={handleSubscribe}
+          onClose={handleCloseComingSoon}
+          onMaybeLater={handleMaybeLater}
         />
       )}
     </>
